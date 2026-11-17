@@ -1,0 +1,262 @@
+HTML
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TruckMap Riyadh</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+body {
+  margin: 0;
+  background: #101827;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  padding: 17px;
+  background: #182b40;
+  font-size: 23px;
+  font-weight: bold;
+}
+
+header span {
+  color: #32d49b;
+}
+
+#map {
+  height: 48vh;
+  width: 100%;
+}
+
+.panel {
+  padding: 16px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  border: 1px solid #52677d;
+  background: #1b2c42;
+  color: white;
+  font-size: 16px;
+}
+
+button {
+  padding: 13px;
+  border: 0;
+  border-radius: 9px;
+  background: #32d49b;
+  color: #09251b;
+  font-weight: bold;
+  margin-top: 10px;
+  width: 100%;
+  font-size: 15px;
+}
+
+.secondary {
+  background: #304963;
+  color: white;
+}
+
+.warning {
+  background: #49232a;
+  padding: 13px;
+  border-radius: 10px;
+  margin-top: 15px;
+  color: #ffb4b4;
+}
+
+.info {
+  background: #1b2c42;
+  padding: 13px;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+small {
+  color: #aabbd0;
+}
+</style>
+</head>
+
+<body>
+
+<header>🚚 Truck<span>Map</span> Riyadh</header>
+
+<div id="map"></div>
+
+<div class="panel">
+
+<h2>Truck Navigation</h2>
+
+<p>Find your destination and avoid truck-prohibited roads.</p>
+
+<input
+id="destination"
+placeholder="Enter destination in Riyadh">
+
+<button onclick="searchPlace()">
+Search Destination
+</button>
+
+<button class="secondary" onclick="myLocation()">
+Show My Location
+</button>
+
+<div class="info">
+
+<strong>🔊 Truck Protection</strong>
+
+<p>Advance warning distance: 2 km</p>
+
+<button class="secondary" onclick="testVoice()">
+Test Voice Alert
+</button>
+
+</div>
+
+<div class="warning">
+
+<strong>⚠ DEMO NO-ENTRY ZONE</strong>
+
+<p>
+This red area is fictional demonstration data,
+NOT an official Riyadh truck restriction.
+</p>
+
+</div>
+
+<div class="info">
+
+<strong>Our Next Features</strong>
+
+<p>Truck no-entry zones</p>
+<p>Time-based road restrictions</p>
+<p>Truck-safe alternative routes</p>
+<p>Voice navigation</p>
+
+</div>
+
+<p>
+<small>
+Prototype only. Not for real truck navigation yet.
+</small>
+</p>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const map = L.map('map').setView(
+  [24.7136, 46.6753], 11
+);
+
+L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    attribution: '© OpenStreetMap contributors'
+  }
+).addTo(map);
+
+// Fictional demonstration restriction zone
+L.polygon([
+  [24.735, 46.650],
+  [24.739, 46.680],
+  [24.715, 46.690],
+  [24.708, 46.660]
+], {
+  color: 'red',
+  fillColor: 'red',
+  fillOpacity: 0.35
+}).addTo(map).bindPopup(
+  'DEMO ONLY: Fictional truck restricted zone'
+);
+
+// Search destination
+async function searchPlace() {
+
+  const q = document.getElementById(
+    'destination'
+  ).value;
+
+  if (!q) return;
+
+  try {
+
+    const url =
+      'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='
+      + encodeURIComponent(q + ', Riyadh, Saudi Arabia');
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.length) {
+      alert('Destination not found');
+      return;
+    }
+
+    const p = [
+      Number(data[0].lat),
+      Number(data[0].lon)
+    ];
+
+    L.marker(p)
+      .addTo(map)
+      .bindPopup('Destination: ' + q)
+      .openPopup();
+
+    map.setView(p, 14);
+
+  } catch (error) {
+    alert('Please check your internet connection');
+  }
+}
+
+// Show current GPS location
+function myLocation() {
+
+  navigator.geolocation.getCurrentPosition(
+
+    position => {
+
+      const a = [
+        position.coords.latitude,
+        position.coords.longitude
+      ];
+
+      L.marker(a)
+        .addTo(map)
+        .bindPopup('Your location')
+        .openPopup();
+
+      map.setView(a, 15);
+
+    },
+
+    () => alert('Please allow location permission')
+  );
+}
+
+// Test voice alert
+function testVoice() {
+
+  const msg =
+    'TruckMap demonstration. Restricted zone ahead in two kilometres. This is not a real road alert.';
+
+  speechSynthesis.speak(
+    new SpeechSynthesisUtterance(msg)
+  );
+}
+
+</script>
+
+</body>
+</html>
